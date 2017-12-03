@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Academic</title>
+    <link>/jtaca.github.io/project/</link>
+    <description>Recent content in Projects on Academic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2017 Joao Tiago Aparicio</copyright>
+    <lastBuildDate>Sun, 03 Dec 2017 21:48:14 +0000</lastBuildDate>
+    <atom:link href="/jtaca.github.io/project/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Robo1</title>
+      <link>/jtaca.github.io/project/robo1/</link>
+      <pubDate>Sun, 03 Dec 2017 21:48:14 +0000</pubDate>
+      
+      <guid>/jtaca.github.io/project/robo1/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

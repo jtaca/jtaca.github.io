@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Experience on Academic</title>
+    <link>/jtaca.github.io/talk/</link>
+    <description>Recent content in Experience on Academic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2017 Joao Tiago Aparicio</copyright>
+    <lastBuildDate>Sun, 01 Jan 2017 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/jtaca.github.io/talk/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>ChairACM</title>
+      <link>/jtaca.github.io/talk/chairacm/</link>
+      <pubDate>Sun, 03 Dec 2017 21:35:39 +0000</pubDate>
+      
+      <guid>/jtaca.github.io/talk/chairacm/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
