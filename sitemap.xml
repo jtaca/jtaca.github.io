@@ -5,7 +5,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/project/robo1/</loc>
+      <loc>/project/robo1/</loc>
       <lastmod>2017-12-03T21:48:14+00:00</lastmod>
     </url>
     
@@ -14,7 +14,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/talk/chairacm/</loc>
+      <loc>/talk/chairacm/</loc>
       <lastmod>2017-12-03T21:35:39+00:00</lastmod>
     </url>
     
@@ -23,7 +23,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/publication/my-paper-name1/</loc>
+      <loc>/publication/my-paper-name1/</loc>
       <lastmod>2017-12-03T20:49:59+00:00</lastmod>
     </url>
     
@@ -32,7 +32,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/publication/my-paper-name/</loc>
+      <loc>/publication/my-paper-name/</loc>
       <lastmod>2017-12-03T20:32:06+00:00</lastmod>
     </url>
     
@@ -41,7 +41,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/talk/</loc>
+      <loc>/talk/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
     </url>
     
@@ -50,7 +50,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/post/</loc>
+      <loc>/post/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
     </url>
     
@@ -59,7 +59,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/publication/</loc>
+      <loc>/publication/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
     </url>
     
@@ -68,7 +68,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/publication_types/0/</loc>
+      <loc>/publication_types/0/</loc>
       <lastmod>2017-12-03T20:49:59+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -78,7 +78,16 @@
     
     <url>
     
-      <loc>/jtaca.github.io/</loc>
+      <loc>/categories/</loc>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/</loc>
       <lastmod>2016-04-20T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -88,16 +97,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/categories/</loc>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>/jtaca.github.io/project/</loc>
+      <loc>/project/</loc>
       <lastmod>2017-12-03T21:48:14+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -107,7 +107,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/publication_types/</loc>
+      <loc>/publication_types/</loc>
       <lastmod>2017-12-03T20:49:59+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -117,7 +117,7 @@
     
     <url>
     
-      <loc>/jtaca.github.io/tags/</loc>
+      <loc>/tags/</loc>
       <priority>0</priority>
     </url>
     
