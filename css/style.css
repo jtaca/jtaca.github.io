@@ -825,3 +825,16 @@ fieldset {
   /*background-color: #cccccc;*/
   /*background-image: url("img/about-img.jpg");*/
 }
+
+.frame {
+  border: 10px solid #425BB5;
+  margin: auto;
+  padding: 15px 15px;
+  height: 505px;
+  width: 450px;
+}
+
+img {
+  width: 100%;
+  height: 100%;
+}
