@@ -12,15 +12,35 @@
   <lastmod>2020-06-01T18:43:07+00:00</lastmod>
   <priority>1.00</priority>
 </url>
+      
 <url>
   <loc>https://jtaca.github.io/files/cv.pdf</loc>
   <lastmod>2020-06-01T18:43:07+00:00</lastmod>
   <priority>0.80</priority>
 </url>
+      
 <url>
   <loc>https://jtaca.github.io/img/portfolio/</loc>
   <lastmod>2020-06-01T18:43:07+00:00</lastmod>
   <priority>0.60</priority>
+</url>
+      
+<url>
+  <loc>https://jtaca.github.io/img/about-img.jpg</loc>
+  <lastmod>2020-06-01T18:43:07+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+      
+<url>
+  <loc>https://jtaca.github.io/img/home-bg-2.jpg</loc>
+  <lastmod>2020-06-01T18:43:07+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+
+<url>
+  <loc>https://jtaca.github.io/index.html</loc>
+  <lastmod>2020-06-01T18:43:07+00:00</lastmod>
+  <priority>1.00</priority>
 </url>
 
 </urlset>
