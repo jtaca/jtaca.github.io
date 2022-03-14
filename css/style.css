@@ -40,6 +40,7 @@ h1 {
     font-family: 'Playfair Display', serif;
     font-size: 80px;
     line-height: 70px;
+    color: #989898;
 }
 
 h4 {
@@ -251,7 +252,7 @@ nav li {
 nav li a {
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: #444;
+    color: #989898;
     font-size: 11px;
     font-weight: bold;
 }
@@ -266,7 +267,7 @@ nav li a {
 }
 
 a:focus {
-    color: #444;
+    color: #989898;
     text-decoration: none;
 }
 
@@ -518,7 +519,7 @@ a.active {
     opacity: 0;
     -webkit-transition: all .2s ease-in-out;
     transition: all .2s ease-in-out;
-    color: #333;
+    color: #989898;
 }
 
 .portfolio_item .portfolio_item_hover .item_info {
@@ -756,7 +757,7 @@ fieldset {
 }
 
 .social li a {
-    color: #333;
+    color: #989898;
     font-size: 35px;
     margin-right: 15px;
     transition: all .3s;
@@ -789,6 +790,8 @@ fieldset {
         font-family: 'Playfair Display', serif;
         font-size: 50px;
         line-height: 50px;
+        color: #989898;
+
     }
     #home,
     .disply-table {
@@ -830,7 +833,7 @@ fieldset {
   border: 10px solid #425BB5;
   margin: auto;
   padding: 15px 15px;
-  height: 505px;
+  height: 590px;
   width: 450px;
 }
 
