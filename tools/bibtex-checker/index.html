@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BibTeX Checker</title>
+  <meta name="description" content="Client-side BibTeX checker: parse, validate fields/DOIs, and check existence in OpenAlex.">
+
+  <!--
+    STYLE INHERITANCE:
+    This page will try to import the same stylesheet <link> tags your site uses
+    by fetching your nearest ancestor index.html (../index.html, ../../index.html, ...).
+    If it fails (e.g., local file://), it will still look decent using fallback CSS below.
+  -->
+
+  <style>
+    /* Minimal fallback styling (kept intentionally light so your site CSS can take over). */
+    :root{
+      --bc-border: rgba(120,120,120,.25);
+      --bc-surface: rgba(120,120,120,.06);
+      --bc-surface-2: rgba(120,120,120,.10);
+      --bc-good: rgba(0, 150, 90, .18);
+      --bc-warn: rgba(255, 170, 0, .18);
+      --bc-bad: rgba(255, 70, 70, .18);
+      --bc-radius: 14px;
+    }
+    body { margin: 0; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+    .bc-title { margin: 0 0 6px; }
+    .bc-sub { margin: 0 0 18px; opacity: .82; }
+
+    .bc-topbar {
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      border: 1px solid var(--bc-border);
+      background: var(--bc-surface);
+      padding: 10px 12px;
+      border-radius: var(--bc-radius);
+      margin: 10px 0 18px;
+      flex-wrap: wrap;
+    }
+    .bc-badges { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .bc-badge {
+      border: 1px solid var(--bc-border);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(255,255,255,.04);
+      display:flex; gap:8px; align-items:center;
+    }
+    .bc-dot { width:10px; height:10px; border-radius: 999px; background: rgba(160,160,160,.6); }
+    .bc-dot.good { background: rgba(0, 180, 120, .85); }
+    .bc-dot.warn { background: rgba(255, 170, 0, .95); }
+    .bc-dot.bad { background: rgba(255, 70, 70, .95); }
+
+    .bc-grid {
+      display:grid;
+      grid-template-columns: 1.35fr .85fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 980px) { .bc-grid { grid-template-columns: 1fr; } }
+
+    .bc-card {
+      border: 1px solid var(--bc-border);
+      background: var(--bc-surface);
+      border-radius: var(--bc-radius);
+      padding: 14px;
+    }
+    .bc-card h3 { margin: 0 0 10px; }
+    label { display:block; font-size: 12px; opacity: .85; margin: 10px 0 6px; }
+    input[type="text"], textarea {
+      width:100%;
+      box-sizing:border-box;
+      border: 1px solid var(--bc-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.03);
+      color: inherit;
+      outline: none;
+    }
+    textarea { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; }
+    input[type="file"]{ width:100%; }
+    .bc-row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-top: 12px; }
+    .bc-btn {
+      border: 1px solid var(--bc-border);
+      background: rgba(255,255,255,.04);
+      color: inherit;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .bc-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .bc-btn.primary { background: var(--bc-surface-2); }
+
+    .bc-alert {
+      margin: 14px 0 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--bc-border);
+      background: rgba(255,255,255,.03);
+      white-space: pre-wrap;
+    }
+    .bc-alert.warn { background: var(--bc-warn); }
+    .bc-alert.bad  { background: var(--bc-bad); }
+    .bc-alert.good { background: var(--bc-good); }
+
+    .bc-summary {
+      display:grid; gap: 10px;
+    }
+    .bc-kpis { display:flex; gap:10px; flex-wrap: wrap; }
+    .bc-kpi {
+      border: 1px solid var(--bc-border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,.03);
+      font-size: 12px;
+      display:flex; gap:8px; align-items:center;
+    }
+
+    table {
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      border: 1px solid var(--bc-border);
+      border-radius: var(--bc-radius);
+      overflow: hidden;
+    }
+    thead th {
+      text-align:left;
+      font-size: 12px;
+      padding: 10px 10px;
+      background: rgba(120,120,120,.10);
+      border-bottom: 1px solid var(--bc-border);
+    }
+    tbody td {
+      vertical-align: top;
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--bc-border);
+      background: rgba(255,255,255,.02);
+      font-size: 13px;
+    }
+    .bc-pill {
+      display:inline-flex; gap:8px; align-items:center;
+      border: 1px solid var(--bc-border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      background: rgba(255,255,255,.03);
+      margin: 2px 0;
+    }
+    a { color: inherit; }
+    .bc-muted { opacity: .72; font-size: 12px; }
+    .bc-small { font-size: 12px; opacity: .82; }
+    .bc-foot { margin-top: 10px; font-size: 12px; opacity: .8; }
+    .bc-spinner { display:none; }
+    .bc-spinner.on { display:inline-block; }
+  </style>
+
+  <!-- Citation.js (browser bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/citation-js@0.7.22/build/citation.min.js"></script>
+</head>
+
+<body>
+<main>
+  <!-- Optional: mimic your homepage section style -->
+  <div class="bc-muted">#### Tools</div>
+  <h1 class="bc-title">BibTeX Checker (client-side)</h1>
+  <p class="bc-sub">Upload or paste a <code>.bib</code>, validate fields/DOIs, and check whether entries exist in OpenAlex.</p>
+
+  <div class="bc-topbar">
+    <div class="bc-badges">
+      <div class="bc-badge" title="Everything runs in your browser; nothing is uploaded anywhere by this page.">
+        <span class="bc-dot good"></span> Client-side only
+      </div>
+      <div class="bc-badge" id="parserBadge" title="Citation.js load status">
+        <span class="bc-dot warn" id="parserDot"></span>
+        <span id="parserText">Parser loading…</span>
+      </div>
+      <div class="bc-badge" title="OpenAlex now requires API keys; without one you will hit 409 after a tiny demo quota.">
+        <span class="bc-dot warn"></span> OpenAlex API key recommended (often required)
+      </div>
+    </div>
+  </div>
+
+  <div class="bc-grid">
+    <section class="bc-card">
+      <h3>Input</h3>
+
+      <label for="apiKey">OpenAlex API key</label>
+      <input id="apiKey" type="text" placeholder="Paste your key (or 'api_key=...')">
+
+      <label for="bibFile">Upload .bib</label>
+      <input id="bibFile" type="file" accept=".bib,text/plain">
+
+      <label for="bibText">Paste BibTeX</label>
+      <textarea id="bibText" spellcheck="false" placeholder="@article{...}"></textarea>
+
+      <div class="bc-row">
+        <button class="bc-btn" id="loadExampleBtn">Load example</button>
+        <button class="bc-btn primary" id="parseBtn">Parse &amp; validate</button>
+        <button class="bc-btn primary" id="checkBtn">Check existence (OpenAlex) <span class="bc-spinner" id="checkSpin">⏳</span></button>
+        <button class="bc-btn" id="downloadBtn">Download report (JSON)</button>
+        <button class="bc-btn" id="clearBtn">Clear</button>
+      </div>
+
+      <div class="bc-alert" id="statusBox" style="display:none;"></div>
+    </section>
+
+    <aside class="bc-card">
+      <h3>Summary</h3>
+      <div class="bc-summary">
+        <div class="bc-muted" id="summaryText">
+          Entries: 0<br>
+          Warnings: 0 · Errors: 0 · Found in OpenAlex: 0
+        </div>
+        <div class="bc-kpis">
+          <div class="bc-kpi"><span class="bc-dot good"></span> Parsed: <span id="kpiParsed">0</span></div>
+          <div class="bc-kpi"><span class="bc-dot warn"></span> Warnings: <span id="kpiWarn">0</span></div>
+          <div class="bc-kpi"><span class="bc-dot bad"></span> Errors: <span id="kpiErr">0</span></div>
+          <div class="bc-kpi"><span class="bc-dot good"></span> Found: <span id="kpiFound">0</span></div>
+        </div>
+
+        <div class="bc-foot">
+          Existence check uses OpenAlex:
+          <ul class="bc-muted" style="margin:8px 0 0 18px;">
+            <li>DOI exact match when available (fast + reliable)</li>
+            <li>Otherwise title + year best-effort</li>
+          </ul>
+          <div class="bc-muted" style="margin-top:10px;">
+            If you see <code>409</code> errors, it’s typically missing/invalid API key.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="bc-card" style="margin-top:14px;">
+    <h3>Results</h3>
+    <div class="bc-muted">Entries will appear here after parsing.</div>
+
+    <table aria-label="BibTeX checker results">
+      <thead>
+        <tr>
+          <th style="width: 18%;">Key</th>
+          <th>Title</th>
+          <th style="width: 8%;">Year</th>
+          <th style="width: 16%;">DOI</th>
+          <th style="width: 18%;">Validation</th>
+          <th style="width: 14%;">Exists?</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+(function () {
+  // ---------- Utilities ----------
+  const $ = (id) => document.getElementById(id);
+
+  function showStatus(msg, kind = "good") {
+    const box = $("statusBox");
+    box.style.display = "block";
+    box.className = "bc-alert " + kind;
+    box.textContent = msg;
+  }
+  function hideStatus(){ $("statusBox").style.display = "none"; }
+
+  // Removes annoying citation placeholders if they were ever copy-pasted into content.
+  function stripWeirdCiteArtifacts(s) {
+    if (!s) return s;
+    return s.replace(/:contentReference\[[^\]]+\]\{index=\d+\}/g, "").trim();
+  }
+
+  function normalizeApiKey(input) {
+    const s = (input || "").trim();
+    if (!s) return "";
+    if (s.startsWith("api_key=")) return s.slice("api_key=".length).trim();
+    return s;
+  }
+
+  function cleanDoi(raw) {
+    if (!raw) return "";
+    let s = String(raw).trim();
+    s = s.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+    s = s.replace(/^doi:/i, "");
+    return s.trim();
+  }
+
+  function isLikelyDoi(doi) {
+    // Simple practical DOI pattern
+    return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(doi || "");
+  }
+
+  function normTitle(s) {
+    return (s || "")
+      .toLowerCase()
+      .replace(/[\u2010-\u2015]/g, "-")
+      .replace(/[^a-z0-9\s-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function jaccardSimilarity(a, b) {
+    const A = new Set(normTitle(a).split(" ").filter(Boolean));
+    const B = new Set(normTitle(b).split(" ").filter(Boolean));
+    if (!A.size || !B.size) return 0;
+    let inter = 0;
+    for (const w of A) if (B.has(w)) inter++;
+    const uni = A.size + B.size - inter;
+    return uni ? inter / uni : 0;
+  }
+
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  // ---------- Inherit site CSS from your existing jtaca.github.io ----------
+  async function inheritSiteStyles() {
+    // Try walking up directories to find the "site root" index.html
+    const candidates = [
+      "./index.html",
+      "../index.html",
+      "../../index.html",
+      "../../../index.html",
+      "../../../../index.html"
+    ];
+
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) continue;
+        const html = await res.text();
+        // Basic heuristic: only accept if it looks like an HTML doc with <link rel="stylesheet">
+        if (!/<link[^>]+rel=["']stylesheet["']/i.test(html)) continue;
+
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        // Clone stylesheet links into this page (avoid duplicates)
+        const existing = new Set([...document.querySelectorAll('link[rel="stylesheet"]')].map(l => l.href));
+        const links = [...doc.querySelectorAll('link[rel="stylesheet"]')];
+
+        for (const link of links) {
+          const href = link.getAttribute("href");
+          if (!href) continue;
+          const abs = new URL(href, new URL(url, location.href)).href;
+          if (existing.has(abs)) continue;
+          const el = document.createElement("link");
+          el.rel = "stylesheet";
+          el.href = abs;
+          document.head.appendChild(el);
+          existing.add(abs);
+        }
+
+        // Optional: copy font preconnect/preload if present (harmless if duplicates)
+        const preconnects = [...doc.querySelectorAll('link[rel="preconnect"], link[rel="preload"][as="font"]')];
+        for (const link of preconnects) {
+          const el = link.cloneNode(true);
+          // Make relative URLs absolute
+          const href = el.getAttribute("href");
+          if (href) el.setAttribute("href", new URL(href, new URL(url, location.href)).href);
+          document.head.appendChild(el);
+        }
+
+        return; // success
+      } catch (_) {
+        // file:// or fetch blocked, just skip
+      }
+    }
+  }
+
+  // ---------- BibTeX parsing ----------
+  function splitBibEntries(raw) {
+    // Lightweight splitter: @type{key, ... } blocks.
+    // Not a complete BibTeX parser, but works well for typical .bib files.
+    const text = stripWeirdCiteArtifacts(raw || "");
+    const re = /@([a-zA-Z]+)\s*\{\s*([^,\s]+)\s*,/g;
+    const matches = [];
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      matches.push({ type: m[1].toLowerCase(), key: m[2], start: m.index, headEnd: re.lastIndex });
+    }
+    const entries = [];
+    for (let i = 0; i < matches.length; i++) {
+      const cur = matches[i];
+      const nextStart = (i + 1 < matches.length) ? matches[i + 1].start : text.length;
+      const block = text.slice(cur.start, nextStart).trim();
+
+      // Field grabber (best-effort)
+      const fields = {};
+      const fieldRe = /(\w+)\s*=\s*(\{(?:[^{}]|\{[^{}]*\})*\}|"[^"]*")\s*,?/g;
+      let fm;
+      while ((fm = fieldRe.exec(block)) !== null) {
+        const k = fm[1].toLowerCase();
+        let v = fm[2].trim();
+        if ((v.startsWith("{") && v.endsWith("}")) || (v.startsWith('"') && v.endsWith('"'))) {
+          v = v.slice(1, -1);
+        }
+        v = v.replace(/\s+/g, " ").trim();
+        fields[k] = v;
+      }
+
+      entries.push({ key: cur.key, type: cur.type, raw: block, fields });
+    }
+    return entries;
+  }
+
+  function requiredForType(type) {
+    // Practical minimal requirements (not exhaustive)
+    switch ((type || "").toLowerCase()) {
+      case "article": return ["title", "author", "journal", "year"];
+      case "inproceedings": return ["title", "author", "booktitle", "year"];
+      case "proceedings": return ["title", "year"];
+      case "book": return ["title", "publisher", "year"]; // author/editor is also typical, treated as warning if missing
+      case "inbook": return ["title", "publisher", "year"];
+      case "phdthesis":
+      case "mastersthesis": return ["title", "author", "school", "year"];
+      case "techreport": return ["title", "author", "institution", "year"];
+      default: return ["title"];
+    }
+  }
+
+  function validateEntry(e) {
+    const errors = [];
+    const warnings = [];
+    const f = e.fields || {};
+
+    const req = requiredForType(e.type);
+    for (const k of req) {
+      if (!f[k] || !String(f[k]).trim()) errors.push(`Missing required field: ${k}`);
+    }
+
+    // Soft expectations
+    if ((e.type === "book" || e.type === "inbook") && !f.author && !f.editor) {
+      warnings.push("Book-type entry: consider adding author or editor.");
+    }
+    if (!f.year && !f.date) warnings.push("Missing year/date; OpenAlex title matching will be weaker.");
+
+    // DOI checks (field, or embedded in url)
+    let doi = cleanDoi(f.doi || "");
+    if (!doi && f.url) {
+      const m = String(f.url).match(/doi\.org\/(10\.\d{4,9}\/[^\s#?]+)/i);
+      if (m) doi = cleanDoi(m[1]);
+    }
+    if (doi && !isLikelyDoi(doi)) warnings.push(`DOI looks malformed: ${doi}`);
+
+    return { errors, warnings, doi };
+  }
+
+  // ---------- OpenAlex ----------
+  const OA = {
+    base: "https://api.openalex.org",
+    async fetchJson(pathOrUrl, apiKey) {
+      const url = new URL(pathOrUrl.startsWith("http") ? pathOrUrl : (OA.base + pathOrUrl));
+      const key = normalizeApiKey(apiKey);
+      if (key) url.searchParams.set("api_key", key);
+
+      const res = await fetch(url.toString(), {
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!res.ok) {
+        let body = "";
+        try { body = await res.text(); } catch(_) {}
+        const err = new Error(`OpenAlex HTTP ${res.status}`);
+        err.status = res.status;
+        err.body = body;
+        throw err;
+      }
+      return await res.json();
+    },
+
+    workUrlFromApiId(apiId) {
+      // API returns id like "https://openalex.org/W...."
+      return apiId || "";
+    }
+  };
+
+  async function checkByDoiBatch(dois, apiKey) {
+    // Uses filter with OR via pipe. DOIs must be full https://doi.org/<doi> inside filter.
+    // (OpenAlex supports OR with pipe in filters.)
+    const chunks = [];
+    for (let i = 0; i < dois.length; i += 25) chunks.push(dois.slice(i, i + 25));
+
+    const resultsByDoi = new Map();
+
+    for (const chunk of chunks) {
+      const filterVal = chunk.map(d => "https://doi.org/" + d).join("|");
+      const url = `/works?filter=doi:${encodeURIComponent(filterVal)}&per-page=200&select=id,doi,display_name,title,ids`;
+      const data = await OA.fetchJson(url, apiKey);
+
+      for (const w of (data.results || [])) {
+        const wdoi = cleanDoi(w.doi || (w.ids && w.ids.doi) || "");
+        if (wdoi) resultsByDoi.set(wdoi.toLowerCase(), w);
+      }
+
+      // small pause to be gentle
+      await sleep(120);
+    }
+
+    return resultsByDoi;
+  }
+
+  async function checkByTitle(title, year, apiKey) {
+    const q = stripWeirdCiteArtifacts(title || "").trim();
+    if (!q) return null;
+
+    const url = new URL(OA.base + "/works");
+    url.searchParams.set("search", q);
+    url.searchParams.set("per-page", "5");
+    url.searchParams.set("select", "id,doi,display_name,title,publication_year,ids");
+
+    if (year) url.searchParams.set("filter", `publication_year:${year}`);
+
+    const key = normalizeApiKey(apiKey);
+    if (key) url.searchParams.set("api_key", key);
+
+    const data = await OA.fetchJson(url.toString(), apiKey);
+    const cand = (data.results || [])[0] || null;
+    return cand;
+  }
+
+  // ---------- State + Rendering ----------
+  let state = {
+    parsed: false,
+    entries: [],      // {key,type,title,year,doi,validation:{},exists:{}}
+    report: {}
+  };
+
+  function updateSummary() {
+    const entries = state.entries || [];
+    const warnings = entries.reduce((s,e)=> s + (e.validation?.warnings?.length||0), 0);
+    const errors   = entries.reduce((s,e)=> s + (e.validation?.errors?.length||0), 0);
+    const found    = entries.reduce((s,e)=> s + ((e.exists?.checked && e.exists?.status==="found") ? 1 : 0), 0);
+
+    $("summaryText").textContent = `Entries: ${entries.length}\nWarnings: ${warnings} · Errors: ${errors} · Found in OpenAlex: ${found}`;
+    $("kpiParsed").textContent = String(entries.length);
+    $("kpiWarn").textContent = String(warnings);
+    $("kpiErr").textContent = String(errors);
+    $("kpiFound").textContent = String(found);
+  }
+
+  function pill(text, kind) {
+    const span = document.createElement("span");
+    span.className = "bc-pill";
+    const dot = document.createElement("span");
+    dot.className = "bc-dot " + (kind || "");
+    span.appendChild(dot);
+    const t = document.createElement("span");
+    t.textContent = text;
+    span.appendChild(t);
+    return span;
+  }
+
+  function renderTable() {
+    const tb = $("resultsBody");
+    tb.innerHTML = "";
+    for (const e of state.entries) {
+      const tr = document.createElement("tr");
+
+      const tdKey = document.createElement("td");
+      tdKey.textContent = e.key || "";
+      tr.appendChild(tdKey);
+
+      const tdTitle = document.createElement("td");
+      tdTitle.textContent = e.title || "";
+      tr.appendChild(tdTitle);
+
+      const tdYear = document.createElement("td");
+      tdYear.textContent = e.year ? String(e.year) : "";
+      tr.appendChild(tdYear);
+
+      const tdDoi = document.createElement("td");
+      if (e.doi) {
+        const a = document.createElement("a");
+        a.href = "https://doi.org/" + e.doi;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = e.doi;
+        tdDoi.appendChild(a);
+      } else {
+        tdDoi.textContent = "";
+      }
+      tr.appendChild(tdDoi);
+
+      const tdVal = document.createElement("td");
+      const errs = e.validation?.errors || [];
+      const warns = e.validation?.warnings || [];
+      if (errs.length) tdVal.appendChild(pill(`${errs.length} error(s)`, "bad"));
+      if (warns.length) tdVal.appendChild(pill(`${warns.length} warning(s)`, "warn"));
+      if (!errs.length && !warns.length) tdVal.appendChild(pill("OK", "good"));
+
+      if (errs.length) {
+        const div = document.createElement("div");
+        div.className = "bc-muted";
+        div.style.marginTop = "6px";
+        div.textContent = errs[0];
+        tdVal.appendChild(div);
+      } else if (warns.length) {
+        const div = document.createElement("div");
+        div.className = "bc-muted";
+        div.style.marginTop = "6px";
+        div.textContent = warns[0];
+        tdVal.appendChild(div);
+      }
+      tr.appendChild(tdVal);
+
+      const tdEx = document.createElement("td");
+      if (!e.exists?.checked) {
+        tdEx.appendChild(pill("Not checked", "warn"));
+      } else if (e.exists.status === "found") {
+        tdEx.appendChild(pill("Found", "good"));
+        if (e.exists.openalexUrl) {
+          const a = document.createElement("a");
+          a.href = e.exists.openalexUrl;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.style.display = "inline-block";
+          a.style.marginTop = "6px";
+          a.textContent = "OpenAlex";
+          tdEx.appendChild(document.createElement("br"));
+          tdEx.appendChild(a);
+        }
+        if (e.exists.suggestedDoi && !e.doi) {
+          const div = document.createElement("div");
+          div.className = "bc-muted";
+          div.style.marginTop = "6px";
+          div.textContent = `Suggested DOI: ${e.exists.suggestedDoi}`;
+          tdEx.appendChild(div);
+        }
+      } else if (e.exists.status === "not_found") {
+        tdEx.appendChild(pill("Not found", "bad"));
+      } else {
+        tdEx.appendChild(pill("Error", "bad"));
+        if (e.exists.errorMsg) {
+          const div = document.createElement("div");
+          div.className = "bc-muted";
+          div.style.marginTop = "6px";
+          div.textContent = e.exists.errorMsg;
+          tdEx.appendChild(div);
+        }
+      }
+
+      tr.appendChild(tdEx);
+      tb.appendChild(tr);
+    }
+  }
+
+  // ---------- Actions ----------
+  function getCiteConstructor() {
+    // Citation.js browser bundle provides require('citation-js') (per their docs)
+    // https://citation.js.org/api/0.3/tutorial-getting_started.html
+    try {
+      if (typeof window.require === "function") return window.require("citation-js");
+    } catch (_) {}
+    // Fallbacks
+    if (typeof window.Cite === "function") return window.Cite;
+    return null;
+  }
+
+  function setParserReady(ok) {
+    const dot = $("parserDot");
+    const text = $("parserText");
+    if (ok) {
+      dot.className = "bc-dot good";
+      text.textContent = "Parser ready";
+    } else {
+      dot.className = "bc-dot bad";
+      text.textContent = "Parser not available";
+    }
+  }
+
+  async function parseAndValidate() {
+    hideStatus();
+    const raw = stripWeirdCiteArtifacts($("bibText").value || "");
+    if (!raw.trim()) {
+      showStatus("Paste some BibTeX or upload a .bib first.", "warn");
+      return;
+    }
+
+    const Cite = getCiteConstructor();
+    if (!Cite) {
+      showStatus("Citation.js did not load. Check your network / adblock, then refresh.", "bad");
+      return;
+    }
+
+    const basicEntries = splitBibEntries(raw);
+
+    // Build a map from Citation.js output (CSL-ish) by id/key
+    let citeData = [];
+    try {
+      const c = new Cite(raw);
+      citeData = Array.isArray(c.data) ? c.data : [];
+    } catch (err) {
+      showStatus("Parser error: " + (err?.message || String(err)), "bad");
+      return;
+    }
+
+    const byId = new Map();
+    for (const item of citeData) {
+      const id = item.id || item["citation-key"];
+      if (id) byId.set(String(id), item);
+    }
+
+    const entries = basicEntries.map(be => {
+      const csl = byId.get(be.key) || {};
+      const title = be.fields.title || csl.title || "";
+      const year = Number(be.fields.year || (csl.issued && csl.issued["date-parts"] && csl.issued["date-parts"][0] && csl.issued["date-parts"][0][0]) || "") || null;
+
+      const v = validateEntry(be);
+      const doi = cleanDoi(v.doi || "");
+
+      return {
+        key: be.key,
+        type: be.type,
+        title: stripWeirdCiteArtifacts(title),
+        year,
+        doi,
+        validation: { errors: v.errors, warnings: v.warnings },
+        exists: { checked: false, status: "not_checked" }
+      };
+    });
+
+    state.parsed = true;
+    state.entries = entries;
+    state.report = {
+      generated_at: new Date().toISOString(),
+      entries: entries
+    };
+
+    updateSummary();
+    renderTable();
+
+    const warnCount = entries.reduce((s,e)=> s+(e.validation.warnings.length),0);
+    const errCount = entries.reduce((s,e)=> s+(e.validation.errors.length),0);
+    const kind = errCount ? "bad" : (warnCount ? "warn" : "good");
+    showStatus(`Parsed ${entries.length} entr${entries.length===1?"y":"ies"}.\nWarnings: ${warnCount} · Errors: ${errCount}`, kind);
+  }
+
+  async function checkExistence() {
+    hideStatus();
+    if (!state.parsed || !state.entries.length) {
+      showStatus("Run “Parse & validate” first.", "warn");
+      return;
+    }
+
+    const apiKey = normalizeApiKey($("apiKey").value);
+    if (!apiKey) {
+      // OpenAlex will typically return 409 after a tiny demo quota; warn clearly.
+      showStatus(
+        "No OpenAlex API key provided.\nOpenAlex now requires API keys for normal use; without one you may hit 409 after a tiny demo quota.\nAdd your key above and retry.",
+        "warn"
+      );
+      // Still attempt, in case you’re within demo credits.
+    }
+
+    $("checkBtn").disabled = true;
+    $("checkSpin").classList.add("on");
+
+    try {
+      // DOI batch first
+      const doiEntries = state.entries.filter(e => e.doi && isLikelyDoi(e.doi));
+      const doiList = doiEntries.map(e => e.doi.toLowerCase());
+      const doiMap = doiList.length ? await checkByDoiBatch(doiList, apiKey) : new Map();
+
+      for (const e of state.entries) {
+        e.exists = { checked: true, status: "not_found" };
+      }
+
+      // Apply DOI matches
+      for (const e of doiEntries) {
+        const w = doiMap.get(e.doi.toLowerCase());
+        if (w) {
+          e.exists.status = "found";
+          e.exists.method = "doi";
+          e.exists.openalexId = w.id || "";
+          e.exists.openalexUrl = OA.workUrlFromApiId(w.id);
+          const wdoi = cleanDoi(w.doi || (w.ids && w.ids.doi) || "");
+          if (wdoi && !e.doi) e.exists.suggestedDoi = wdoi;
+        }
+      }
+
+      // Title matches for entries without DOI (or malformed DOI)
+      const titleCandidates = state.entries.filter(e => !e.doi || !isLikelyDoi(e.doi));
+      for (const e of titleCandidates) {
+        if (!e.title || !e.title.trim()) continue;
+
+        let cand = null;
+        try {
+          cand = await checkByTitle(e.title, e.year, apiKey);
+        } catch (err) {
+          e.exists.status = "error";
+          e.exists.errorMsg = (err && err.status) ? `OpenAlex HTTP ${err.status}` : "OpenAlex error";
+          continue;
+        }
+
+        if (!cand) continue;
+
+        const sim = jaccardSimilarity(e.title, cand.title || cand.display_name || "");
+        if (sim >= 0.78) {
+          e.exists.status = "found";
+          e.exists.method = "title";
+          e.exists.openalexId = cand.id || "";
+          e.exists.openalexUrl = OA.workUrlFromApiId(cand.id);
+          const candDoi = cleanDoi(cand.doi || (cand.ids && cand.ids.doi) || "");
+          if (candDoi && !e.doi) e.exists.suggestedDoi = candDoi;
+        }
+        await sleep(120);
+      }
+
+      // Update report + UI
+      state.report = {
+        generated_at: new Date().toISOString(),
+        openalex: { checked: true },
+        entries: state.entries
+      };
+
+      updateSummary();
+      renderTable();
+
+      const found = state.entries.reduce((s,e)=> s+(e.exists.checked && e.exists.status==="found" ? 1 : 0),0);
+      showStatus(`OpenAlex check complete.\nFound: ${found}/${state.entries.length}`, found ? "good" : "warn");
+
+    } catch (err) {
+      const code = err?.status ? `HTTP ${err.status}` : "Error";
+      let hint = "";
+      if (err?.status === 409) hint = "\nHint: 409 commonly means missing/invalid API key or demo quota exhausted.";
+      showStatus(`OpenAlex check failed (${code}).${hint}`, "bad");
+    } finally {
+      $("checkBtn").disabled = false;
+      $("checkSpin").classList.remove("on");
+    }
+  }
+
+  function downloadReport() {
+    if (!state.entries.length) {
+      showStatus("Nothing to download yet. Parse a .bib first.", "warn");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(state.report, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "bibtex-checker-report.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function clearAll() {
+    $("bibText").value = "";
+    $("bibFile").value = "";
+    state = { parsed:false, entries:[], report:{} };
+    updateSummary();
+    renderTable();
+    hideStatus();
+  }
+
+  function loadExample() {
+    $("bibText").value = `@article{aparicio2026unveiling,
+  title={Unveiling emerging communities: a network approach on transport decarbonisation technology},
+  author={Aparicio, Joao Tiago and Arsenio, Elisabete and Henriques, Rui},
+  journal={Transportation Research Interdisciplinary Perspectives},
+  volume={36},
+  pages={101833},
+  year={2026},
+  publisher={Elsevier}
+}`;
+    showStatus("Example loaded. Click “Parse & validate”.", "good");
+  }
+
+  async function init() {
+    // Inherit CSS from your site so the page matches jtaca.github.io look & feel.
+    inheritSiteStyles();
+
+    // Parser badge
+    const Cite = getCiteConstructor();
+    setParserReady(!!Cite);
+
+    // Wire events
+    $("loadExampleBtn").addEventListener("click", loadExample);
+    $("parseBtn").addEventListener("click", parseAndValidate);
+    $("checkBtn").addEventListener("click", checkExistence);
+    $("downloadBtn").addEventListener("click", downloadReport);
+    $("clearBtn").addEventListener("click", clearAll);
+
+    $("bibFile").addEventListener("change", async (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      const txt = await f.text();
+      $("bibText").value = stripWeirdCiteArtifacts(txt);
+      showStatus(`Loaded file: ${f.name}. Click “Parse & validate”.`, "good");
+    });
+
+    updateSummary();
+    renderTable();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
